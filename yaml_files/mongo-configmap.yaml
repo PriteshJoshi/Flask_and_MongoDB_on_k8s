@@ -1,0 +1,7 @@
+#file name mongo-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongodb-configmap # name of config-map
+data: #data is stored in key value pair
+  database_url: mongodb-service

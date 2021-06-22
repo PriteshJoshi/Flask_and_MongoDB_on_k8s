@@ -1,0 +1,52 @@
+#file name flask-api.yaml
+apiVersion: apps/v1
+kind: Deployment # type of resource
+metadata:
+  name: flask-api-deployment # name of deployment
+  labels:
+    app: flask-label #label used by service
+spec:
+  selector:
+    matchLabels:
+      app: flask-label
+  replicas: 2 #number of replicas
+  template:
+    metadata:
+      labels:
+        app: flask-label
+    spec:
+      containers:
+      - name: flask-api-container
+        image: priteshjoshi/flask-api
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+        env:
+          - name: MONGO_USERNAME
+            valueFrom:
+              secretKeyRef:  #get value from secrets
+                name: mongodb-secret #name of secret
+                key: mongo-root-username #value of this key will be used
+          - name: MONGO_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mongodb-secret
+                key: mongo-root-password
+          - name: MONGODB_SERVER
+            valueFrom:
+              configMapKeyRef:
+                name: mongodb-configmap
+                key: database_url
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-api-service
+spec:
+  selector: # selector used to find deployments and pods with same label
+    app: flask-label
+  ports:
+  - protocol: "TCP"
+    port: 8080 #port where service will receive requests
+    targetPort: 5000 #port on container where requests will be forwarded
+  type: LoadBalancer # flask-api-service is external service
